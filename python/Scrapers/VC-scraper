@@ -1,0 +1,40 @@
+
+import requests
+from bs4 import BeautifulSoup
+
+
+base_url = "https://vc-mapping.gilion.com/venture-capital-firms/early-stage-investors"
+base_page_url = base_url + "?e1793a9a_page="
+
+
+website_urls = []
+
+for page_num in range(1, 51):  
+    page_url = base_page_url + str(page_num)
+    
+
+    response = requests.get(page_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+   
+    vc_firm_links = soup.find_all('a', class_='card-button w-button')
+
+    for link in vc_firm_links:
+        firm_url = "https://vc-mapping.gilion.com" + link['href']
+        
+      
+        firm_response = requests.get(firm_url)
+        firm_soup = BeautifulSoup(firm_response.text, 'html.parser')
+
+        website_div = firm_soup.find('div', class_='button-text-copy2 white')
+
+        if website_div:
+            parent_a_tag = website_div.find_parent('a')
+            if parent_a_tag and 'href' in parent_a_tag.attrs:
+                website_url = parent_a_tag['href']
+                website_urls.append(website_url)
+                print(website_url)
+
+with open('vc_firm_website_links.txt', 'w') as file:
+    for website_url in website_urls:
+        file.write(website_url + '\n')
